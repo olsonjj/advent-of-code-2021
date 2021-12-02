@@ -8,10 +8,18 @@ import { map } from 'rxjs/operators';
 export class FileLoaderService {
   constructor(private http: HttpClient) {}
 
-  getDayInput(dayName: string) {
+  getDayInputAsNumber(dayName: string) {
     return this.http.get(`/assets/${dayName}`, { responseType: 'text' }).pipe(
       map((rawInput: string) => {
         return rawInput.split('\n').map((str) => Number(str));
+      })
+    );
+  }
+
+  getDayInputAsString(dayName: string) {
+    return this.http.get(`/assets/${dayName}`, { responseType: 'text' }).pipe(
+      map((rawInput: string) => {
+        return rawInput.split('\n');
       })
     );
   }

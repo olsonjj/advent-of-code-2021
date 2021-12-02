@@ -5,9 +5,9 @@ import { bufferCount, pairwise, take, tap } from 'rxjs/operators';
 import { FileLoaderService } from '../services/file-loader-service';
 
 @Component({
-  selector: 'app-day-1',
+  selector: 'app-day-2',
   template: `
-    <h1>Day 1</h1>
+    <h1>Day 2</h1>
     <div>
       <button (click)="solvePart1()">Part 1</button> 
       result 1 {{results1}}
@@ -29,71 +29,86 @@ import { FileLoaderService } from '../services/file-loader-service';
   `,
   ],
 })
-export class Day1Component implements OnInit, OnDestroy {
+export class Day2Component implements OnInit, OnDestroy {
   results1 = '';
   results2 = '';
 
   private inputValues = [];
-  private testValues = [199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
-  private valuesHigher = 0;
-  private subs = new Subscription();
+  private testValues = [
+    'forward 5',
+    'down 5',
+    'forward 8',
+    'up 3',
+    'down 8',
+    'forward 2',
+  ];
 
   constructor(private srv: FileLoaderService) {}
 
   ngOnInit(): void {
     this.srv
-      .getDayInputAsNumber('day1.txt')
+      .getDayInputAsString('day2.txt')
       .subscribe((val) => (this.inputValues = val));
   }
 
   solvePart1() {
     console.log('part 1');
-    this.valuesHigher = 0;
+    let horz = 0;
+    let vert = 0;
+
     from(this.inputValues)
       .pipe(
-        pairwise(),
-        tap(([val1, val2]) => {
-          if (val2 > val1) {
-            this.valuesHigher++;
+        tap((val: string) => {
+          const [movement, distance] = val.split(' ');
+          switch (movement) {
+            case 'forward':
+              horz += +distance;
+              break;
+            case 'down':
+              vert += +distance;
+              break;
+            case 'up':
+              vert -= +distance;
+              break;
           }
         })
       )
       .subscribe({
         complete: () => {
-          console.log('complete', this.valuesHigher);
-          this.results1 = `= ${this.valuesHigher}`;
+          console.log('done', horz, vert, horz * vert);
         },
       });
   }
 
   solvePart2() {
     console.log('part 2');
-    this.valuesHigher = 0;
-    let prevSum = 0;
+    let horz = 0;
+    let aim = 0;
+    let depth = 0;
     from(this.inputValues)
       .pipe(
-        bufferCount(3, 1),
-        tap((vals) => {
-          if (vals.length === 3) {
-            const sum = vals.reduce((acc, curr) => {
-              return (acc += curr);
-            }, 0);
-            if (sum > prevSum && prevSum !== 0) {
-              this.valuesHigher++;
-            }
-            prevSum = sum;
+        tap((val: string) => {
+          const [movement, distance] = val.split(' ');
+          switch (movement) {
+            case 'forward':
+              horz += +distance;
+              depth += aim * +distance;
+              break;
+            case 'down':
+              aim += +distance;
+              break;
+            case 'up':
+              aim -= +distance;
+              break;
           }
         })
       )
       .subscribe({
         complete: () => {
-          console.log('complete', this.valuesHigher);
-          this.results2 = `= ${this.valuesHigher}`;
+          console.log('done', horz, depth, horz * depth);
         },
       });
   }
 
-  ngOnDestroy() {
-    this.subs?.unsubscribe();
-  }
+  ngOnDestroy() {}
 }
