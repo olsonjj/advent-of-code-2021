@@ -1,40 +1,49 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, Input, OnInit } from '@angular/core';
-import { from } from 'rxjs';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { from, Subscription } from 'rxjs';
 import { bufferCount, pairwise, take, tap } from 'rxjs/operators';
+import { FileLoaderService } from '../services/file-loader-service';
 
 @Component({
-  selector: 'app-day',
+  selector: 'app-day-1',
   template: `
     <h1>Day 1</h1>
     <div>
-      <button (click)="solvePart1()">Part 1</button>
+      <button (click)="solvePart1()">Part 1</button> 
+      result 1 {{results1}}
       <button (click)="solvePart2()">Part 2</button>
+      result 2 {{results2}}
     </div>
   `,
   styles: [
     `
   :host {
     display: flex;
-    flex-direction: column
+    flex-direction: column;
+    // align-items: center;
+  }
+
+  h1, button {
+    margin-right: 10px;
   }
   `,
   ],
 })
-export class Day1Component implements OnInit {
+export class Day1Component implements OnInit, OnDestroy {
+  results1 = '';
+  results2 = '';
 
   private inputValues = [];
   private testValues = [199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
   private valuesHigher = 0;
+  private subs = new Subscription();
 
-  constructor(private http: HttpClient) {}
+  constructor(private srv: FileLoaderService) {}
 
   ngOnInit(): void {
-    this.http
-      .get(`/assets/day1.txt`, { responseType: 'text' })
-      .subscribe((rawInput) => {
-        this.inputValues = rawInput.split('\n').map((str) => Number(str));
-      });
+    this.srv
+      .getDayInput('day1.txt')
+      .subscribe((val) => (this.inputValues = val));
   }
 
   solvePart1() {
@@ -52,6 +61,7 @@ export class Day1Component implements OnInit {
       .subscribe({
         complete: () => {
           console.log('complete', this.valuesHigher);
+          this.results1 = `= ${this.valuesHigher}`;
         },
       });
   }
@@ -78,7 +88,12 @@ export class Day1Component implements OnInit {
       .subscribe({
         complete: () => {
           console.log('complete', this.valuesHigher);
+          this.results2 = `= ${this.valuesHigher}`;
         },
       });
+  }
+
+  ngOnDestroy() {
+    this.subs?.unsubscribe();
   }
 }
